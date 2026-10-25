@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warga Survivor</title>
+<style>
+:root{--bg:#0e1020;--panel:#171a2e;--panel2:#1e2240;--line:#2b3157;--txt:#eef0fa;--mut:#98a1c9;--acc:#ff4d5e;--ok:#3ecf8e;--gold:#f2c14e}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 16px;font-weight:700;background:var(--acc);color:#fff}
+button.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+button:disabled{opacity:.4;cursor:not-allowed}
+input{font:inherit;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#0b0d1a;color:var(--txt);width:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:12px}
+.home{max-width:440px;margin:6vh auto 0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}
+.home h1{margin:0 0 4px;font-size:28px;letter-spacing:.5px}
+.home h1 span{color:var(--acc)}
+.home p{color:var(--mut);margin:0 0 18px;font-size:14px;line-height:1.5}
+.row{display:flex;gap:8px;margin-top:10px}
+.sep{margin:18px 0 6px;color:var(--mut);font-size:12px;text-align:center}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#2a1620;border:1px solid var(--acc);padding:10px 16px;border-radius:10px;z-index:9;max-width:90vw}
+.lobby{max-width:520px;margin:5vh auto 0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}
+.code{font-size:44px;font-weight:900;letter-spacing:10px;text-align:center;color:var(--gold);margin:6px 0}
+.plist .pl{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--panel2);margin-top:8px}
+.dot{width:16px;height:16px;border-radius:50%;flex:none;border:2px solid #fff3}
+.mut{color:var(--mut);font-size:13px}
+.game{display:grid;grid-template-columns:minmax(0,720px) minmax(280px,1fr);gap:12px;align-items:start}
+@media(max-width:900px){.game{grid-template-columns:1fr}}
+.board{display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);aspect-ratio:1;width:100%;container-type:inline-size;gap:2px;background:#07080f;padding:2px;border-radius:14px}
+.tile{position:relative;background:#f4efe3;color:#1d1d24;border-radius:4px;display:flex;flex-direction:column;overflow:hidden;font-size:max(6.5px,1.3cqw);line-height:1.15;cursor:pointer;min-width:0}
+.tile .bar{height:20%;min-height:4px;flex:none}
+.tile .nm{padding:2px 3px;font-weight:700;overflow:hidden}
+.tile .pr{padding:0 3px 2px;color:#444;font-weight:600}
+.tile .ic{font-size:max(11px,2.6cqw);text-align:center;padding-top:3px}
+.tile.sp{background:#dfe3f5;text-align:center}
+.tile.t-start{background:#ffe9a8}.tile.t-bekasi{background:#c9ccd8}.tile.t-takdir{background:#bfe6ff}.tile.t-musibah{background:#e1c8ff}
+.tile.t-tax,.tile.t-tilang,.tile.t-pungli{background:#ffd0d0}.tile.t-libur{background:#cdf5d6}.tile.t-pemilu{background:#ffe0c2}.tile.t-viral{background:#ffc6e3}
+.tile.sel{outline:3px solid var(--gold);z-index:2}
+.pawns{position:absolute;left:2px;right:2px;bottom:2px;display:flex;flex-wrap:wrap;gap:1px}
+.pawn{width:max(10px,2.7cqw);height:max(10px,2.7cqw);border-radius:50%;border:1.5px solid #fff;color:#fff;font-size:max(6px,1.5cqw);font-weight:800;display:grid;place-items:center;box-shadow:0 1px 3px #0008}
+.pawn.cur{animation:bob .8s infinite alternate}
+@keyframes bob{to{transform:translateY(-3px)}}
+.hs{position:absolute;top:1px;right:1px;display:flex;gap:1px}
+.hs i{width:max(5px,1.2cqw);height:max(5px,1.2cqw);background:#2e9e5b;border:1px solid #fff}
+.center{grid-row:2/9;grid-column:2/9;background:radial-gradient(circle at 50% 30%,#232857,#12142b);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4cqw;padding:1.5cqw;text-align:center;min-width:0}
+.center h2{margin:0;font-size:max(14px,4cqw);letter-spacing:1px}
+.center h2 span{color:var(--acc)}
+.center .sub{color:var(--mut);font-size:max(9px,1.8cqw)}
+.dice{display:flex;gap:1.5cqw}
+.die{width:max(30px,7cqw);height:max(30px,7cqw);background:#fff;color:#111;border-radius:12%;display:grid;place-items:center;font-size:max(16px,4.4cqw);font-weight:900}
+.die.roll{animation:shake .6s}
+@keyframes shake{0%{transform:rotate(0)}25%{transform:rotate(-25deg) scale(1.1)}50%{transform:rotate(20deg)}75%{transform:rotate(-12deg)}100%{transform:rotate(0)}}
+.turn{font-weight:800;font-size:max(11px,2.3cqw)}
+.cardbox{background:#0006;border:1px solid var(--line);border-radius:10px;padding:1cqw 1.6cqw;font-size:max(9px,1.9cqw);max-width:90%}
+.cardbox.takdir{border-color:#5bc0eb}.cardbox.musibah{border-color:#b07cf0}.cardbox.pemilu{border-color:#f08a24}
+.acts{display:flex;gap:1cqw;flex-wrap:wrap;justify-content:center}
+.acts button{font-size:max(10px,2cqw);padding:max(6px,1.2cqw) max(10px,2.2cqw)}
+.side{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+.card h3{margin:0 0 8px;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.pcard{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:var(--panel2);margin-bottom:6px;border:2px solid transparent}
+.pcard.me{border-color:#ffffff22}.pcard.turn{border-color:var(--gold)}.pcard.dead{opacity:.45}
+.pcard .n{font-weight:700}.pcard .m{font-weight:800;color:var(--ok)}
+.badge{font-size:11px;padding:1px 6px;border-radius:99px;background:#ffffff18;margin-left:4px}
+.logbox{height:240px;overflow:auto;font-size:13px;line-height:1.45;display:flex;flex-direction:column;gap:3px}
+.logbox div{padding:2px 0;border-bottom:1px dashed #ffffff0d}
+.chatrow{display:flex;gap:6px;margin-top:8px}
+.chatrow button{padding:8px 12px}
+.info b{font-size:15px}
+.info table{width:100%;font-size:13px;margin-top:6px;border-collapse:collapse}
+.info td{padding:2px 0;color:var(--mut)}.info td:last-child{text-align:right;color:var(--txt)}
+.timer{font-variant-numeric:tabular-nums;color:var(--mut);font-size:max(9px,1.8cqw)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="toast"></div>
+<script>
+'use strict';
+const $app = document.getElementById('app');
+let ws, S = null, me = null, board = null, groups = null;
+let token = localStorage.getItem('ws_token') || '';
+let roomCode = localStorage.getItem('ws_room') || '';
+let myName = localStorage.getItem('ws_name') || '';
+let sel = null, lastRoll = -1, fresh = false, stateAt = 0;
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rp = (n) => 'Rp' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const sm = (n) => n >= 1e6 ? String(n / 1e6).replace('.', ',') + 'jt' : (n / 1e3) + 'rb';
+const ICON = { start: '💵', bekasi: '🚐', takdir: '🎴', musibah: '⚡', tax: '🧾', tilang: '🚓', pungli: '🤝', libur: '🏖️', pemilu: '🗳️', viral: '📱' };
+
+function toast(m) {
+  const t = document.getElementById('toast');
+  t.innerHTML = '<div class="toast">' + esc(m) + '</div>';
+  setTimeout(() => { t.innerHTML = ''; }, 3200);
+}
+function send(o) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
+
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(proto + '://' + location.host);
+  ws.onopen = () => { if (token && roomCode) send({ t: 'rejoin', room: roomCode, token }); else render(); };
+  ws.onmessage = (e) => {
+    const m = JSON.parse(e.data);
+    if (m.t === 'joined') {
+      token = m.token; roomCode = m.code; me = m.you; board = m.board; groups = m.groups;
+      localStorage.setItem('ws_token', token); localStorage.setItem('ws_room', roomCode);
+      history.replaceState(null, '', '/');
+    } else if (m.t === 'state') {
+      S = m.r; me = m.you; stateAt = Date.now();
+      if (S.rollId !== lastRoll) { fresh = lastRoll !== -1 && S.rollId > 0; lastRoll = S.rollId; } else fresh = false;
+      render();
+    } else if (m.t === 'err') {
+      toast(m.m);
+      if (m.fatal) { clearSession(); render(); }
+    } else if (m.t === 'left') { clearSession(); render(); }
+  };
+  ws.onclose = () => { setTimeout(connect, 1500); };
+}
+function clearSession() {
+  token = ''; roomCode = ''; S = null; me = null; lastRoll = -1;
+  localStorage.removeItem('ws_token'); localStorage.removeItem('ws_room');
+}
+
+/* ----------------------------------------------------------- helper papan */
+function pos(i) {
+  if (i <= 8) return [9, 9 - i];
+  if (i <= 16) return [9 - (i - 8), 1];
+  if (i <= 24) return [1, 1 + (i - 16)];
+  return [1 + (i - 24), 9];
+}
+function pl(id) { return S.players.find((p) => p.id === id); }
+function canBuild(i) {
+  const t = board[i];
+  if (!t || t.type !== 'prop' || !S || S.turn !== me) return false;
+  if (S.phase !== 'roll' && S.phase !== 'end') return false;
+  if (S.owner[i] !== me) return false;
+  const grp = board.filter((x) => x.group === t.group);
+  if (!grp.every((x) => S.owner[x.i] === me)) return false;
+  const h = S.houses[i] || 0;
+  if (h >= 3) return false;
+  const other = grp.find((x) => x.i !== i);
+  if (h > (S.houses[other.i] || 0)) return false;
+  return pl(me).money >= t.house;
+}
+function rentNow(i) {
+  const t = board[i]; const lvl = S.houses[i] || 0; let r = t.rent[lvl];
+  const o = S.owner[i];
+  if (o !== undefined && lvl === 0 && board.filter((x) => x.group === t.group).every((x) => S.owner[x.i] === o)) r *= 2;
+  return r;
+}
+
+/* ---------------------------------------------------------------- render */
+function render() {
+  const keep = document.getElementById('chatin') ? document.getElementById('chatin').value : '';
+  const hadFocus = document.activeElement && document.activeElement.id === 'chatin';
+  if (!S) $app.innerHTML = homeHTML();
+  else if (S.phase === 'lobby') $app.innerHTML = lobbyHTML();
+  else $app.innerHTML = gameHTML();
+  const ci = document.getElementById('chatin');
+  if (ci) { ci.value = keep; if (hadFocus) { ci.focus(); ci.setSelectionRange(keep.length, keep.length); } }
+  const lb = document.getElementById('logbox');
+  if (lb) lb.scrollTop = lb.scrollHeight;
+  bind();
+}
+
+function homeHTML() {
+  const q = new URLSearchParams(location.search).get('room') || '';
+  return `<div class="home">
+    <h1>WARGA <span>SURVIVOR</span></h1>
+    <p>Board game satir multiplayer: bertahan hidup di tengah pajak, pungli, tilang, banjir, dan netizen. Bukan siapa yang paling kaya, tapi siapa yang terakhir bertahan.</p>
+    <input id="nm" maxlength="16" placeholder="Nama kamu" value="${esc(myName)}">
+    <div class="row"><button id="mk" style="flex:1">Buat Ruangan</button></div>
+    <div class="sep">atau gabung ke ruangan teman</div>
+    <div class="row"><input id="rc" maxlength="4" placeholder="KODE" value="${esc(q.toUpperCase())}" style="text-transform:uppercase;letter-spacing:6px;text-align:center"><button id="jn" class="sec">Gabung</button></div>
+  </div>`;
+}
+
+function lobbyHTML() {
+  const host = S.host === me;
+  const link = location.origin + '/?room=' + S.code;
+  return `<div class="lobby">
+    <div class="mut" style="text-align:center">Kode ruangan</div>
+    <div class="code">${esc(S.code)}</div>
+    <div class="row"><input readonly value="${esc(link)}" onclick="this.select()"><button id="cp" class="sec">Salin</button></div>
+    <h3 class="mut" style="margin:18px 0 0">PEMAIN (${S.players.length}/5)</h3>
+    <div class="plist">${S.players.map((p) => `<div class="pl"><span class="dot" style="background:${p.color}"></span><b>${esc(p.name)}</b>${p.id === S.host ? '<span class="badge">host</span>' : ''}${p.id === me ? '<span class="badge">kamu</span>' : ''}${p.connected ? '' : '<span class="badge">offline</span>'}</div>`).join('')}</div>
+    <div class="row" style="margin-top:18px">
+      ${host ? `<button id="st" style="flex:1" ${S.players.filter((p) => p.connected).length < 2 ? 'disabled' : ''}>Mulai Permainan</button>` : '<div class="mut" style="flex:1;align-self:center">Menunggu host memulai…</div>'}
+      <button id="lv" class="sec">Keluar</button>
+    </div>
+    <p class="mut" style="margin-top:14px;line-height:1.5">Aturan singkat: lempar dadu, beli tanah, bangun rumah, hindari bangkrut. Pemain terakhir yang tidak bangkrut menang. Ada Bekasi, Kartu Takdir, dan Kartu Musibah.</p>
+  </div>`;
+}
+
+function tileHTML(t) {
+  const [r, c] = pos(t.i);
+  const here = S.players.filter((p) => p.pos === t.i && !p.bankrupt);
+  const o = S.owner[t.i];
+  const op = o !== undefined ? pl(o) : null;
+  const h = S.houses[t.i] || 0;
+  let inner;
+  if (t.type === 'prop') {
+    inner = `<div class="bar" style="background:${groups[t.group]}"></div><div class="nm">${esc(t.name)}</div><div class="pr">${sm(t.price)}</div>`;
+  } else {
+    inner = `<div class="ic">${ICON[t.type] || ''}</div><div class="nm" style="text-align:center">${esc(t.name)}</div>${t.amount ? `<div class="pr" style="text-align:center">${sm(t.amount)}</div>` : ''}`;
+  }
+  const style = `grid-row:${r};grid-column:${c};${op ? `box-shadow:inset 0 0 0 max(2px,.5cqw) ${op.color};` : ''}`;
+  return `<div class="tile t-${t.type} ${sel === t.i ? 'sel' : ''}" data-i="${t.i}" style="${style}">${inner}
+    ${h ? `<div class="hs">${'<i></i>'.repeat(h)}</div>` : ''}
+    <div class="pawns">${here.map((p) => `<span class="pawn ${p.id === S.turn ? 'cur' : ''}" style="background:${p.color}">${esc(p.name[0].toUpperCase())}</span>`).join('')}</div></div>`;
+}
+
+function centerHTML() {
+  const cp = pl(S.turn);
+  const mine = S.turn === me;
+  let acts = '', head = '';
+  if (S.phase === 'over') {
+    const w = pl(S.winner);
+    head = `<div class="turn" style="font-size:max(14px,3cqw)">🏆 ${w ? esc(w.name) : '-'} bertahan hidup!</div>`;
+    acts = S.host === me ? '<button id="rs">Main Lagi</button>' : '<span class="sub">Menunggu host…</span>';
+  } else if (mine) {
+    const meP = pl(me);
+    head = `<div class="turn" style="color:var(--gold)">Giliranmu${S.dbl ? ' (dadu kembar, lempar lagi!)' : ''}</div>`;
+    if (S.phase === 'roll') {
+      acts = `<button id="roll">🎲 Lempar Dadu</button>`;
+      if (meP.inBekasi) {
+        acts += `<button class="sec" id="pb" ${meP.money < 1000000 ? 'disabled' : ''}>Bayar damai 1jt</button>`;
+        if (meP.jailFree) acts += `<button class="sec" id="cb">Kartu orang dalam</button>`;
+      }
+    } else if (S.phase === 'buy') {
+      const t = board[S.pending.tile];
+      head += `<div class="cardbox">Beli <b>${esc(t.name)}</b> seharga <b>${rp(t.price)}</b>?</div>`;
+      acts = `<button id="buy">Beli</button><button class="sec" id="skip">Lewati</button>`;
+    } else if (S.phase === 'end') {
+      acts = `<button id="end">Akhiri Giliran</button>`;
+    }
+  } else {
+    head = `<div class="turn">Giliran <span style="color:${cp.color}">${esc(cp.name)}</span>${cp.connected ? '' : ' (offline)'}${cp.inBekasi ? ' • di Bekasi' : ''}</div>`;
+  }
+  const card = S.card && S.phase !== 'over' ? `<div class="cardbox ${S.card.kind}"><b>${S.card.kind === 'takdir' ? '🎴 Kartu Takdir' : S.card.kind === 'musibah' ? '⚡ Kartu Musibah' : '🗳️ Pemilu'}</b> • ${esc(pl(S.card.pid).name)}<br>${esc(S.card.text)}</div>` : '';
+  return `<div class="center">
+    <h2>WARGA <span>SURVIVOR</span></h2>
+    <div class="dice"><div class="die ${fresh ? 'roll' : ''}">${S.dice[0]}</div><div class="die ${fresh ? 'roll' : ''}">${S.dice[1]}</div></div>
+    ${head}${card}
+    <div class="acts">${acts}</div>
+    ${S.phase !== 'over' ? '<div class="timer">Sisa waktu giliran: <span id="tm">' + S.left + '</span> dtk</div>' : ''}
+  </div>`;
+}
+
+function infoHTML() {
+  if (sel === null) return '<div class="mut">Klik petak di papan untuk lihat detail dan membangun rumah.</div>';
+  const t = board[sel];
+  if (t.type !== 'prop') return `<div class="info"><b>${ICON[t.type] || ''} ${esc(t.name)}</b>${t.amount ? `<div class="mut">Bayar ${rp(t.amount)}</div>` : ''}</div>`;
+  const o = S.owner[t.i]; const op = o !== undefined ? pl(o) : null; const h = S.houses[t.i] || 0;
+  return `<div class="info"><b>${esc(t.name)}</b> <span class="badge" style="background:${groups[t.group]};color:#fff">${esc(t.group)}</span>
+    <div class="mut">${op ? 'Milik ' + esc(op.name) : 'Belum ada pemilik'} • Harga ${rp(t.price)} • Rumah ${h}/3</div>
+    <table>${t.rent.map((r, k) => `<tr><td>${k === 0 ? 'Sewa tanah kosong' : 'Sewa ' + k + ' rumah'}</td><td${k === h ? ' style="color:var(--gold);font-weight:800"' : ''}>${rp(r)}${k === 0 ? ' (x2 jika satu set)' : ''}</td></tr>`).join('')}
+    <tr><td>Biaya bangun rumah</td><td>${rp(t.house)}</td></tr></table>
+    ${canBuild(t.i) ? `<button id="bd" style="margin-top:8px;width:100%">🔨 Bangun rumah (${rp(t.house)})</button>` : (op && op.id === me ? '<div class="mut" style="margin-top:6px">Bangun rumah: harus punya 1 set warna, di giliranmu, dan dibangun merata.</div>' : '')}
+  </div>`;
+}
+
+function gameHTML() {
+  return `<div class="game">
+    <div class="board">${board.map(tileHTML).join('')}${centerHTML()}</div>
+    <div class="side">
+      <div class="card"><h3>Pemain</h3>${S.players.map((p) => {
+        const np = Object.keys(S.owner).filter((k) => S.owner[k] === p.id).length;
+        return `<div class="pcard ${p.id === me ? 'me' : ''} ${p.id === S.turn && S.phase !== 'over' ? 'turn' : ''} ${p.bankrupt ? 'dead' : ''}">
+          <span class="dot" style="background:${p.color}"></span>
+          <div style="flex:1;min-width:0"><div class="n">${esc(p.name)}${p.id === me ? '<span class="badge">kamu</span>' : ''}${p.inBekasi ? '<span class="badge">Bekasi</span>' : ''}${p.jailFree ? '<span class="badge">🪪×' + p.jailFree + '</span>' : ''}${p.skip ? '<span class="badge">skip</span>' : ''}${p.connected ? '' : '<span class="badge">offline</span>'}${p.bankrupt ? '<span class="badge">bangkrut</span>' : ''}</div>
+          <div class="mut">${np} properti</div></div><div class="m">${p.bankrupt ? '-' : rp(p.money)}</div></div>`;
+      }).join('')}</div>
+      <div class="card" id="info">${infoHTML()}</div>
+      <div class="card"><h3>Kejadian & Chat</h3>
+        <div class="logbox" id="logbox">${S.log.map((l) => l.w ? `<div><b style="color:${l.c}">${esc(l.w)}:</b> ${esc(l.x)}</div>` : `<div class="mut">${esc(l.x)}</div>`).join('')}</div>
+        <div class="chatrow"><input id="chatin" maxlength="140" placeholder="Ketik pesan…"><button id="chatbtn" class="sec">Kirim</button></div>
+      </div>
+      <button id="lv" class="sec">Keluar dari ruangan</button>
+    </div>
+  </div>`;
+}
+
+/* ----------------------------------------------------------------- events */
+function $(id) { return document.getElementById(id); }
+function on(id, fn) { const e = $(id); if (e) e.onclick = fn; }
+function bind() {
+  on('mk', () => { const n = $('nm').value.trim(); if (!n) return toast('Isi nama dulu.'); myName = n; localStorage.setItem('ws_name', n); send({ t: 'create', name: n }); });
+  on('jn', () => { const n = $('nm').value.trim(); const c = $('rc').value.trim(); if (!n) return toast('Isi nama dulu.'); if (c.length !== 4) return toast('Kode ruangan 4 huruf.'); myName = n; localStorage.setItem('ws_name', n); send({ t: 'join', room: c, name: n }); });
+  on('st', () => send({ t: 'start' }));
+  on('cp', () => { navigator.clipboard && navigator.clipboard.writeText(location.origin + '/?room=' + S.code).then(() => toast('Link tersalin.')); });
+  on('lv', () => { if (confirm('Keluar dari ruangan?')) send({ t: 'leave_room' }); });
+  on('roll', () => send({ t: 'roll' }));
+  on('buy', () => send({ t: 'buy' }));
+  on('skip', () => send({ t: 'skip' }));
+  on('end', () => send({ t: 'end' }));
+  on('pb', () => send({ t: 'leave', how: 'pay' }));
+  on('cb', () => send({ t: 'leave', how: 'card' }));
+  on('rs', () => send({ t: 'reset' }));
+  on('bd', () => send({ t: 'build', tile: sel }));
+  on('chatbtn', sendChat);
+  const ci = $('chatin'); if (ci) ci.onkeydown = (e) => { if (e.key === 'Enter') sendChat(); };
+  const rc = $('rc'); if (rc) rc.oninput = () => { rc.value = rc.value.toUpperCase(); };
+  document.querySelectorAll('.tile').forEach((el) => {
+    el.onclick = () => { sel = Number(el.dataset.i); render(); };
+  });
+}
+function sendChat() {
+  const ci = $('chatin'); if (!ci || !ci.value.trim()) return;
+  send({ t: 'chat', text: ci.value }); ci.value = '';
+}
+
+setInterval(() => {
+  const tm = $('tm');
+  if (tm && S) tm.textContent = Math.max(0, S.left - Math.floor((Date.now() - stateAt) / 1000));
+}, 500);
+
+connect();
+render();
+</script>
+</body>
+</html>
